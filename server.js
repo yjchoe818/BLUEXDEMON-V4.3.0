@@ -1,13 +1,29 @@
 const express = require('express')
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
+const fs = require('fs');
+const https = require('https'); // Use https instead of http
+const helmet = require('helmet'); // Import helmet for security headers
+const rateLimit = require('express-rate-limit'); // Import rate limiting middleware
+
+const server = https.createServer({
+    key: fs.readFileSync('server.key'), // Ensure you have the key and cert files
+    cert: fs.readFileSync('server.cert')
+}, app);
 const {
     Server
 } = require("socket.io");
 const io = new Server(server);
 qrwa = null
 
+// Apply helmet middleware to disable X-Powered-By header
+app.use(helmet());
+
+// Apply rate limiting middleware
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
 
 function connect(conn, PORT) {
 
@@ -36,7 +52,5 @@ function connect(conn, PORT) {
         });
     });
 }
-
-
 
 module.exports = connect

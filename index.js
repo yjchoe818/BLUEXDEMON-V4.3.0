@@ -50,8 +50,9 @@ function start(file) {
         console.error('Exited with code:', code)
 
         if (code === 0) return
-        fs.watchFile(args[0], () => {
-            fs.unwatchFile(args[0])
+        const sanitizedPath = path.normalize(args[0]).replace(/^(\.\.(\/|\\|$))+/, '');
+        fs.watchFile(sanitizedPath, () => {
+            fs.unwatchFile(sanitizedPath)
             start(file)
         })
     })
